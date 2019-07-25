@@ -1,6 +1,6 @@
 
   
-options(timeout=180)
+options(timeout=300)
 library2 <<- function(a.package){
   suppressWarnings(suppressPackageStartupMessages(
     library(a.package, character.only = TRUE)))
@@ -1855,7 +1855,39 @@ library2("gWidgetsRGtk2")
   }
   
   # Funciones para datos faltantes ------------------------------------------
-  
+  extractmonths <-
+    function(data=array(1:ndim_max,dim=c(ndim_max,1)),ndim_max=100000,when=c("Dec","Jan","Feb"),year=NULL,origin="1961-1-1"){
+      
+      out <- NULL
+      if (class(data)=="matrix" | class(data)=="data.frame" ) {
+        ndata=nrow(data) 
+        
+        start <- as.integer(julian(as.POSIXct(origin,tz="GMT")))
+        years <- years(as.chron(as.POSIXct(origin,tz="GMT")+1:ndata-1))
+        
+        if (is.null(year)) {
+          out <- (data[which(months(1:ndata+start-1,abbreviate=TRUE) %in% when) ,])
+        } else {
+          out <- (data[which((months(1:ndata+start-1,abbreviate=TRUE) %in% when) & (years %in% year)) ,])
+        }
+      } else {
+        
+        ndata=length(data) 
+        
+        start <- as.integer(julian(as.POSIXct(origin),tz="GMT"))
+        
+        if (is.null(year)) {
+          out <-  (data[which(months(1:ndata+start-1,abbreviate=TRUE) %in% when) ])
+        } else {
+          
+          out <- (data[which((months(1:ndata+start-1,abbreviate=TRUE) %in% when) & (year %in% years)) ])
+        }
+      }
+      
+      
+      
+      return(out)
+    }
   
   datos_falt <- function(){
     dir.create("Datos_faltantes/RMAWGEN", showWarnings = F, recursive = T)
@@ -2158,15 +2190,15 @@ library2("gWidgetsRGtk2")
       legend("topright",c("Generada","Original"),lwd=c(1.5,1.5),col=c("blue","red"))
       dev.off()
       
-      # jpeg(paste("Datos_faltantes/RMAWGEN/prec_faltantes/prec_",station[i],".jpeg",sep=""), width = 10, height = 7,units = 'in',res=200)
-      # 
-      # #jpeg(paste("Datos_faltantes/precip_faltantes/prec_",station[i],".jpeg",sep=""),width = 1150, height = 500)
-      # plot(1:dim(prec)[1],data_genPrec[,i+3],type="l",col="blue",lwd=1.2,main=paste("prec_",station[i],sep=""),xlab="Años",ylab="Precipitación",  xaxt="n")
-      # lines(1:dim(prec)[1],prec[,i+3],col="red",lwd=1.2)
-      # axis(side=1,labels=seq(min(tmax$year),max(tmax$year),3),at=seq(1,nrow(tmax),nrow(tmax)/length(unique(tmax$year))*3),las=2)
-      # legend("topright",c("Generada","Original"),lwd=c(1.5,1.5),col=c("blue","red"))
-      # dev.off()
-      
+      jpeg(paste("Datos_faltantes/RMAWGEN/prec_faltantes/prec_",station[i],".jpeg",sep=""), width = 10, height = 7,units = 'in',res=200)
+
+      #jpeg(paste("Datos_faltantes/precip_faltantes/prec_",station[i],".jpeg",sep=""),width = 1150, height = 500)
+      plot(1:dim(prec)[1],data_genPrec[,i+3],type="l",col="blue",lwd=1.2,main=paste("prec_",station[i],sep=""),xlab="Años",ylab="Precipitación",  xaxt="n")
+      lines(1:dim(prec)[1],prec[,i+3],col="red",lwd=1.2)
+      axis(side=1,labels=seq(min(tmax$year),max(tmax$year),3),at=seq(1,nrow(tmax),nrow(tmax)/length(unique(tmax$year))*3),las=2)
+      legend("topright",c("Generada","Original"),lwd=c(1.5,1.5),col=c("blue","red"))
+      dev.off()
+
       
       tmax.na=which(is.na(tmax[,i+3]))
       tmax[tmax.na,i+3]<-data_genTmax[tmax.na,i+3]
@@ -2175,10 +2207,10 @@ library2("gWidgetsRGtk2")
       tmin.na=which(is.na(tmin[,i+3]))
       tmin[tmin.na,i+3]<-data_genTmin[tmin.na,i+3]
       
-      # 
-      # prec.na=which(is.na(prec[,i+3]))
-      # prec[prec.na,i+3]<-data_genPrec[prec.na,i+3]
-      
+
+      prec.na=which(is.na(prec[,i+3]))
+      prec[prec.na,i+3]<-data_genPrec[prec.na,i+3]
+
     }
     
     write.csv_n(tmax,"Datos_faltantes/data_genTmax.csv",row.names =F)
