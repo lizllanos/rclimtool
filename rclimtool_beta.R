@@ -586,7 +586,7 @@ library2("gWidgetsRGtk2")
     }
   }
   
-  
+   
   # Funciones para generar gráficos PERSONALIZADOS --------------------------
   
   # Funciones para generar gráficos clásicos
